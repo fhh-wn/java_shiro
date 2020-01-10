@@ -1,0 +1,6 @@
+# Project exclude paths
+/myshiro1/target/
+/myshiro3/target/
+/myshiro4/target/
+/myshiro-ssm/target/
+/out/

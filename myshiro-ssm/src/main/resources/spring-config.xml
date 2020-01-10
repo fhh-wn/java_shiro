@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:component-scan base-package="com.woniuxy.*">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"></context:exclude-filter>
+    </context:component-scan>
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+    <!--数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    <!--sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="typeAliasesPackage" value="com.woniuxy.pojo"></property>
+        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml"></property>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.woniuxy.dao"></property>
+    </bean>
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <tx:advice id="txAdivce" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"></tx:method>
+            <tx:method name="update*" propagation="REQUIRED"></tx:method>
+            <tx:method name="get*" propagation="NOT_SUPPORTED"></tx:method>
+            <tx:method name="find*" propagation="NOT_SUPPORTED"></tx:method>
+            <tx:method name="*" propagation="REQUIRED"></tx:method>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut id="servicePc" expression="execution(* com.woniuxy.service.impl.*.*(..))"></aop:pointcut>
+        <aop:advisor advice-ref="txAdivce" pointcut-ref="servicePc"></aop:advisor>
+    </aop:config>
+    <!--声明自定义的realm对象-->
+    <bean id="myShiroRealm" class="com.woniuxy.realm.MyShiroRealm"></bean>
+    <!--定义DefaultWebSecurtyManager对象-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myShiroRealm"></property>
+    </bean>
+    <!--该bean的id值一定要和web.xml文件中DelegatingFilterProxy过滤的name名称保持一样-->
+    <bean id="shiroFilter" class="com.woniuxy.realm.MyShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"></property>
+        <property name="loginUrl" value="/goLogin.html"></property>
+        <property name="successUrl" value="/index.html"></property>
+        <property name="unauthorizedUrl" value="/error.html"></property>
+        <property name="filterChainDefinitions">
+            <value>
+                /login.html=anon
+                /goLogin.html=anon
+                /index.html=authc
+            </value>
+        </property>
+        <property name="filters">
+            <map>
+                <entry key="roles">
+                    <bean class="com.woniuxy.realm.MyshiroFilter"></bean>
+                </entry>
+            </map>
+        </property>
+    </bean>
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

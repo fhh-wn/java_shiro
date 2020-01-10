@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.woniuxy.dao.MenuDao">
+    <resultMap id="menuMap" type="menu">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="url" column="url"></result>
+        <result property="icon" column="icon"></result>
+        <result property="state" column="state"></result>
+        <result property="pId" column="p_id"></result>
+    </resultMap>
+    <select id="getAllMenus" resultMap="menuMap">
+        SELECT * FROM t_menu
+    </select>
+    <select id="getUrlByUserName" resultType="string" parameterType="string">
+        SELECT M.url
+        FROM t_menu M,t_role_menu RM,t_user_role UR
+        WHERE M.id=RM.menu_id AND RM.role_id=UR.role_id
+        AND UR.user_id IN(SELECT U.id FROM t_user U WHERE U.user_name=#{userName})
+    </select>
+</mapper>
